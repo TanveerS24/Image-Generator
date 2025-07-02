@@ -1,34 +1,45 @@
 import * as dotenv from "dotenv";
 import { createError } from "../error.js";
-import { Configuration, OpenAIApi } from "openai";
+import axios from "axios";
 
 dotenv.config();
-
-// Setup open ai api key
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
-
-// Controller to generate Image
 
 export const generateImage = async (req, res, next) => {
   try {
     const { prompt } = req.body;
 
-    const response = await openai.createImage({
-      prompt,
-      n: 1,
-      size: "1024x1024",
-      response_format: "b64_json",
-    });
-    const generatedImage = response.data.data[0].b64_json;
-    return res.status(200).json({ photo: generatedImage });
+    if (!prompt || typeof prompt !== "string" || prompt.trim().length === 0) {
+      return next(createError(400, "Prompt is required"));
+    }
+
+    console.log("Generating image from Stability AI:", prompt);
+
+    const response = await axios.post(
+      "https://api.stability.ai/v1/generation/stable-diffusion-v1-6/text-to-image",
+      {
+        text_prompts: [{ text: prompt }],
+        cfg_scale: 7, // creativity/accuracy tradeoff
+        height: 512,
+        width: 512,
+        samples: 1,
+        steps: 30,
+      },
+      {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${process.env.STABILITY_API_KEY}`,
+        },
+      }
+    );
+
+    const base64Image = response.data.artifacts[0].base64;
+    res.status(200).json({ photo: base64Image });
   } catch (error) {
+    console.error("Stability API error:", error?.response?.data || error.message);
     next(
       createError(
-        error.status,
-        error?.response?.data?.error?.message || error?.message
+        error.status || 500,
+        error?.response?.data?.error?.message || error.message
       )
     );
   }

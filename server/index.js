@@ -1,7 +1,7 @@
 import cors from "cors";
 import express from "express";
 import mongoose from "mongoose";
-import * as dotenv from "dotenv";
+import dotenv from "dotenv";
 import PostRouter from "./routes/Posts.js";
 import GenerateImageRouter from "./routes/GenerateImage.js";
 
@@ -29,15 +29,16 @@ app.use("/api/generateImage", GenerateImageRouter);
 //Default get
 app.get("/", async (req, res) => {
   res.status(200).json({
-    message: "Hello GFG Developers!",
+    message: "Hello user, welcome to the Image Generator API",
   });
 });
 
 //function to connect to mongodb
 const connectDB = () => {
   mongoose.set("strictQuery", true);
+  console.log("Connecting to MongoDB with URI:", process.env.MONGO_URI);
   mongoose
-    .connect(process.env.MONGODB_URL)
+    .connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB Connected"))
     .catch((err) => {
       console.error("Failed to connect to DB");
