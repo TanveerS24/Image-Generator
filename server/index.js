@@ -46,7 +46,6 @@ const connectDB = () => {
     });
 };
 
-//function to start the server
 const startServer = async () => {
   try {
     connectDB();
