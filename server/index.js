@@ -51,6 +51,7 @@ const startServer = async () => {
     connectDB();
     app.listen(8080, () => console.log("Server started on port 8080"));
   } catch (error) {
+    //Error logs
     console.log(error);
   }
 };
